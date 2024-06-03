@@ -73,13 +73,13 @@ def main():
         standard_deviation_luminance_num_matches, standard_deviation_luminance_result_img = feature_matching(
             to_pil(cca.standard_deviation_and_luminance_weighted_gray_world(from_pil(original_img_1))), to_pil(cca.standard_deviation_and_luminance_weighted_gray_world(from_pil(original_img_2)))
         )
-        luminance_num_matches, lumiance_result_img = feature_matching(
+        luminance_num_matches, luminance_result_img = feature_matching(
             to_pil(cca.luminance_weighted_gray_world(from_pil(original_img_1))), to_pil(cca.luminance_weighted_gray_world(from_pil(original_img_2)))
         )
         automatic_color_equalization_num_matches, automatic_color_equalization_result_img = feature_matching(
             to_pil(cca.automatic_color_equalization(from_pil(original_img_1))), to_pil(cca.automatic_color_equalization(from_pil(original_img_2)))
         )
-        
+
         plt.figure(figsize=(10, 10))
         plt.subplot(5, 2, 1)
         plt.imshow(cv2.cvtColor(original_result_img, cv2.COLOR_BGR2RGB))
@@ -122,7 +122,7 @@ def main():
         plt.axis("off")
 
         plt.subplot(5, 2, 9)
-        plt.imshow(cv2.cvtColor(lumiance_result_img, cv2.COLOR_BGR2RGB))
+        plt.imshow(cv2.cvtColor(luminance_result_img, cv2.COLOR_BGR2RGB))
         plt.title(f"Luminance: {luminance_num_matches} matches")
         plt.axis("off")
 
