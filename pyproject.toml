@@ -1,5 +1,5 @@
 [project]
-name = "color-constancy-test"
+name = "color-constancy-experiment"
 version = "0.1.0"
 description = "Add your description here"
 authors = [
