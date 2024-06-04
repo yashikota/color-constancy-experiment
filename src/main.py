@@ -1,18 +1,18 @@
 import cv2
-from PIL import Image
 import numpy as np
 import matplotlib.pyplot as plt
-import colorcorrect.algorithm as cca
-from colorcorrect.util import from_pil, to_pil
+
+
+def grey_world(nimg):
+    nimg = nimg.transpose(2, 0, 1).astype(np.uint32)
+    mu_g = np.average(nimg[1])
+    nimg[0] = np.minimum(nimg[0] * (mu_g / np.average(nimg[0])), 255)
+    nimg[2] = np.minimum(nimg[2] * (mu_g / np.average(nimg[2])), 255)
+
+    return nimg.transpose(1, 2, 0).astype(np.uint8)
 
 
 def feature_matching(img1, img2):
-    img1 = np.array(img1)
-    img2 = np.array(img2)
-
-    img1 = cv2.cvtColor(img1, cv2.COLOR_RGB2BGR)
-    img2 = cv2.cvtColor(img2, cv2.COLOR_RGB2BGR)
-
     akaze = cv2.AKAZE_create()
 
     kp1, des1 = akaze.detectAndCompute(img1, None)
@@ -30,7 +30,7 @@ def feature_matching(img1, img2):
         kp1,
         img2,
         kp2,
-        matches[:10],
+        matches[:0],
         None,
         flags=cv2.DrawMatchesFlags_NOT_DRAW_SINGLE_POINTS,
     )
@@ -46,89 +46,32 @@ def main():
     ]
 
     for i, img in enumerate(images):
-        original_img_1 = Image.open(img[0]).resize([1920, 1080])
-        original_img_2 = Image.open(img[1]).resize([1920, 1080])
+        img1 = cv2.resize(cv2.imread(img[0]), (1920, 1080))
+        img2 = cv2.resize(cv2.imread(img[1]), (1920, 1080))
 
-        original_num_matches, original_result_img = feature_matching(
-            original_img_1, original_img_2
+        original_num_matches, original_result_img = feature_matching(img1, img2)
+        grey_scale_num_matches, grey_scale_result_img = feature_matching(
+            cv2.cvtColor(np.array(img1), cv2.COLOR_RGB2GRAY),
+            cv2.cvtColor(np.array(img2), cv2.COLOR_RGB2GRAY),
         )
         grey_world_num_matches, grey_world_result_img = feature_matching(
-            to_pil(cca.grey_world(from_pil(original_img_1))), to_pil(cca.grey_world(from_pil(original_img_2)))
-        )
-        retinex_num_matches, retinex_result_img = feature_matching(
-            to_pil(cca.retinex(from_pil(original_img_1))), to_pil(cca.retinex(from_pil(original_img_2)))
-        )
-        max_white_num_matches, max_white_result_img = feature_matching(
-            to_pil(cca.max_white(from_pil(original_img_1))), to_pil(cca.max_white(from_pil(original_img_2)))
-        )
-        stretch_num_matches, stretch_result_img = feature_matching(
-            to_pil(cca.stretch(from_pil(original_img_1))), to_pil(cca.stretch(from_pil(original_img_2)))
-        )
-        retinex_with_adjust_num_matches, retinex_with_adjust_result_img = feature_matching(
-            to_pil(cca.retinex_with_adjust(from_pil(original_img_1))), to_pil(cca.retinex_with_adjust(from_pil(original_img_2)))
-        )
-        standard_deviation_num_matches, standard_deviation_result_img = feature_matching(
-            to_pil(cca.standard_deviation_weighted_grey_world(from_pil(original_img_1))), to_pil(cca.standard_deviation_weighted_grey_world(from_pil(original_img_2)))
-        )
-        standard_deviation_luminance_num_matches, standard_deviation_luminance_result_img = feature_matching(
-            to_pil(cca.standard_deviation_and_luminance_weighted_gray_world(from_pil(original_img_1))), to_pil(cca.standard_deviation_and_luminance_weighted_gray_world(from_pil(original_img_2)))
-        )
-        luminance_num_matches, luminance_result_img = feature_matching(
-            to_pil(cca.luminance_weighted_gray_world(from_pil(original_img_1))), to_pil(cca.luminance_weighted_gray_world(from_pil(original_img_2)))
-        )
-        automatic_color_equalization_num_matches, automatic_color_equalization_result_img = feature_matching(
-            to_pil(cca.automatic_color_equalization(from_pil(original_img_1))), to_pil(cca.automatic_color_equalization(from_pil(original_img_2)))
+            grey_world(img1), grey_world(img2)
         )
 
         plt.figure(figsize=(10, 10))
-        plt.subplot(5, 2, 1)
+        plt.subplot(3, 1, 1)
         plt.imshow(cv2.cvtColor(original_result_img, cv2.COLOR_BGR2RGB))
-        plt.title(f"Original: {original_num_matches} matches")
+        plt.title(f"Original: {original_num_matches} matches", fontsize=20)
         plt.axis("off")
 
-        plt.subplot(5, 2, 2)
+        plt.subplot(3, 1, 2)
+        plt.imshow(cv2.cvtColor(grey_scale_result_img, cv2.COLOR_BGR2RGB))
+        plt.title(f"Grey Scale: {grey_scale_num_matches} matches", fontsize=20)
+        plt.axis("off")
+
+        plt.subplot(3, 1, 3)
         plt.imshow(cv2.cvtColor(grey_world_result_img, cv2.COLOR_BGR2RGB))
-        plt.title(f"Grey World: {grey_world_num_matches} matches")
-        plt.axis("off")
-
-        plt.subplot(5, 2, 3)
-        plt.imshow(cv2.cvtColor(retinex_result_img, cv2.COLOR_BGR2RGB))
-        plt.title(f"Retinex: {retinex_num_matches} matches")
-        plt.axis("off")
-
-        plt.subplot(5, 2, 4)
-        plt.imshow(cv2.cvtColor(max_white_result_img, cv2.COLOR_BGR2RGB))
-        plt.title(f"Max White: {max_white_num_matches} matches")
-        plt.axis("off")
-
-        plt.subplot(5, 2, 5)
-        plt.imshow(cv2.cvtColor(stretch_result_img, cv2.COLOR_BGR2RGB))
-        plt.title(f"Stretch: {stretch_num_matches} matches")
-        plt.axis("off")
-
-        plt.subplot(5, 2, 6)
-        plt.imshow(cv2.cvtColor(retinex_with_adjust_result_img, cv2.COLOR_BGR2RGB))
-        plt.title(f"Retinex with Adjust: {retinex_with_adjust_num_matches} matches")
-        plt.axis("off")
-
-        plt.subplot(5, 2, 7)
-        plt.imshow(cv2.cvtColor(standard_deviation_result_img, cv2.COLOR_BGR2RGB))
-        plt.title(f"Standard Deviation: {standard_deviation_num_matches} matches")
-        plt.axis("off")
-
-        plt.subplot(5, 2, 8)
-        plt.imshow(cv2.cvtColor(standard_deviation_luminance_result_img, cv2.COLOR_BGR2RGB))
-        plt.title(f"Standard Deviation Luminance: {standard_deviation_luminance_num_matches} matches")
-        plt.axis("off")
-
-        plt.subplot(5, 2, 9)
-        plt.imshow(cv2.cvtColor(luminance_result_img, cv2.COLOR_BGR2RGB))
-        plt.title(f"Luminance: {luminance_num_matches} matches")
-        plt.axis("off")
-
-        plt.subplot(5, 2, 10)
-        plt.imshow(cv2.cvtColor(automatic_color_equalization_result_img, cv2.COLOR_BGR2RGB))
-        plt.title(f"Automatic Color Equalization: {automatic_color_equalization_num_matches} matches")
+        plt.title(f"Grey World: {grey_world_num_matches} matches", fontsize=20)
         plt.axis("off")
 
         plt.tight_layout()
