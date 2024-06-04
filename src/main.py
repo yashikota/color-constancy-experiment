@@ -3,7 +3,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 
-def grey_world(nimg):
+def gray_world(nimg):
     nimg = nimg.transpose(2, 0, 1).astype(np.uint32)
     mu_g = np.average(nimg[1])
     nimg[0] = np.minimum(nimg[0] * (mu_g / np.average(nimg[0])), 255)
@@ -50,12 +50,12 @@ def main():
         img2 = cv2.resize(cv2.imread(img[1]), (1920, 1080))
 
         original_num_matches, original_result_img = feature_matching(img1, img2)
-        grey_scale_num_matches, grey_scale_result_img = feature_matching(
+        gray_scale_num_matches, gray_scale_result_img = feature_matching(
             cv2.cvtColor(np.array(img1), cv2.COLOR_RGB2GRAY),
             cv2.cvtColor(np.array(img2), cv2.COLOR_RGB2GRAY),
         )
-        grey_world_num_matches, grey_world_result_img = feature_matching(
-            grey_world(img1), grey_world(img2)
+        gray_world_num_matches, gray_world_result_img = feature_matching(
+            gray_world(img1), gray_world(img2)
         )
 
         plt.figure(figsize=(10, 10))
@@ -65,13 +65,13 @@ def main():
         plt.axis("off")
 
         plt.subplot(3, 1, 2)
-        plt.imshow(cv2.cvtColor(grey_scale_result_img, cv2.COLOR_BGR2RGB))
-        plt.title(f"Grey Scale: {grey_scale_num_matches} matches", fontsize=20)
+        plt.imshow(cv2.cvtColor(gray_scale_result_img, cv2.COLOR_BGR2RGB))
+        plt.title(f"Grayscale: {gray_scale_num_matches} matches", fontsize=20)
         plt.axis("off")
 
         plt.subplot(3, 1, 3)
-        plt.imshow(cv2.cvtColor(grey_world_result_img, cv2.COLOR_BGR2RGB))
-        plt.title(f"Grey World: {grey_world_num_matches} matches", fontsize=20)
+        plt.imshow(cv2.cvtColor(gray_world_result_img, cv2.COLOR_BGR2RGB))
+        plt.title(f"Gray World: {gray_world_num_matches} matches", fontsize=20)
         plt.axis("off")
 
         plt.tight_layout()
