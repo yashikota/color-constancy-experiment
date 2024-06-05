@@ -13,18 +13,15 @@ def gray_world(nimg):
 
 
 def feature_matching(img1, img2):
-    akaze = cv2.AKAZE_create()
+    sift = cv2.SIFT_create()
+    kp1, des1 = sift.detectAndCompute(img1, None)
+    kp2, des2 = sift.detectAndCompute(img2, None)
 
-    kp1, des1 = akaze.detectAndCompute(img1, None)
-    kp2, des2 = akaze.detectAndCompute(img2, None)
-
-    bf = cv2.BFMatcher(cv2.NORM_HAMMING, crossCheck=True)
-
+    bf = cv2.BFMatcher(cv2.NORM_L2, crossCheck=True)
     matches = bf.match(des1, des2)
     matches = sorted(matches, key=lambda x: x.distance)
 
     num_matches = len(matches)
-
     result_img = cv2.drawMatches(
         img1,
         kp1,
@@ -46,8 +43,8 @@ def main():
     ]
 
     for i, img in enumerate(images):
-        img1 = cv2.resize(cv2.imread(img[0]), (1920, 1080))
-        img2 = cv2.resize(cv2.imread(img[1]), (1920, 1080))
+        img1 = cv2.resize(cv2.imread(img[0]), (1280, 720))
+        img2 = cv2.resize(cv2.imread(img[1]), (1280, 720))
 
         original_num_matches, original_result_img = feature_matching(img1, img2)
         gray_scale_num_matches, gray_scale_result_img = feature_matching(
